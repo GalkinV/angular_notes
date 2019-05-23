@@ -1,0 +1,692 @@
+1. Установить java
+	sudo apt-get install openjdk-8-jdk
+1.1 Установить git
+	sudo apt-get install git
+2. Разархивировать WebStorm в домашний каталог
+	Например /home/user/WebDevelopment/WebStorm
+3. В соответствии с руководством на WebStorm выполнить из каталога WebStorm/bin файл webstorm.sh
+2. Разархивировать WebStorm в домашний каталог
+	Например /home/user/WebDevelopment/WebStorm
+3. В соответствии с руководством на WebStorm выполнить из каталога WebStorm/bin файл webstorm.sh
+4. Там же рекомендуют прорисать каталог WebStorm/bin в переменню среды PATH
+	echo 'export PATH="$PATH":/home/user/WebDevelopment/WebStorm/bin' >> ~/.bashrc
+	Это сработает только после перезагрузки. Можно выполнить на сессию
+	export PATH="$PATH":/home/user/WebDevelopment/WebStorm/bin
+5. Распаковываем каталог с node.js туда же куда и WebStorm
+6. Прописываем каталог с node.js 
+	echo 'export PATH="$PATH":/home/user/WebDevelopment/node-v11.12.0-linux-x64/bin' >> ~/.bashrc
+	можно еще и export PATH="$PATH":/home/user/WebDevelopment/node-v11.12.0-linux-x64/bin
+7. По идее дальше нужно с помощью npm (менеджера пакетов, входящих в node.js) нужно установить angular/cli (angular comand line interface) командой npm install -g @angular/cli. Однако в Ubungu уже был установлен пакет npm, который делал эту установку с ошибкой. При этом npm из каталога node.js успешно отработал
+	sudo /home/user/WebDevelopment/node-v11.12.0-linux-x64/bin/npm install -g @angular/cli
+8. Создаем каталог для проектов. В нем выполняем команду
+	ng new my-first-app
+где my-first-app - имя проекта (имя каталога, который будет создан).
+9. Переходим в созданный каталог и стартуем сервер
+	ng serve
+10. В браузере можно посмотреть страницу localhost:4200
+11. Запускаем WebStorm и открываем проект (выбираем созданный каталог).
+
+12. Можно скачать темы для WebStorm. Устанавливаются File->Settings->Editor->'Color Sheme'. Там на значек шестеренки и выполнить импорт схемы. 
+13. Установить bootstrap внутри проекта. Для этого в директории с проектом выполнить
+	/home/user/WebDevelopment/node-v11.12.0-linux-x64/bin/npm install -save bootstrap@3 
+14. Для того, чтобы использовать установленные стили bootstrap в файле angular.json в разделе styles нужно добавить 
+	styles: ["node_modules/bootstrap/dist/css/bootstrap.min.css"]
+15. File->Settings там Languages & Frameworks -> Node.js and NPM прописать Package manager: ~/WebDevelopment/node-v11.12.0-linux-x64/lib/node_modules/npm
+16. Средства отладки в хром можно поставить отсюда https://augury.rangle.io/
+
+Angular
+1. Скобки ангуляра в html могут быть
+   1.1 {{ name }} - получение данных из модели в html (называется String Interpolation)
+   1.2 [property]="data" тоже получение данных из модели в html (называется Property Binding). Где property -  свойство html элемента, data - член класса.
+   1.3 (event) = "function()" из html в модель (называется Event Binding). Например на кнопке (clicke)="Function()" или еще интересный случай для передачи параметров <input type="text" class="form-control" (input)="onUpdateServerName($event)">
+   1.4 [( ngModel )] = "name" - связывание данных с компонента ввода данных, например <input type text > с моделью. (называется Two-Way-Binding). Для этого, кажется самого удобного типа связывания нужно сделат import { NgModule } from '@angular/core'; и import[FormsModule] в app.module.ts
+   Для использования ngModel нужно в файл app.module.ts добавить import FormsModule from '@angular/forms'
+2. Объявление перед классом называется декоратор. Напрмер @Component({....}) export class Aaaa
+3. Для создания нового компонента из консоли можно вызвать 
+	ng g c servers
+   будут созданны servers.component.css *.html *.spec.ts *.ts   Эти же файлы можно создать вручную.
+4. Похоже что в TypeScript есть закрытые (privet) члены класса. Для них можно сделать getter/setter. Интересно, что из html к getter'у нужно обращаться как к обычному члену класса.
+6. Декараторы пример включения в DOM по условию (переменная serverCreated м.б true или false) <p *ngIf="serverCreated">{{serverCreationStatus}}</p>
+7. Так можно организовать else
+	<p *ngIf="serverCreated; else noServer">{{serverCreationStatus}}</p>
+	<ng-template #noServer> <p>No server was created</p> </ng-template>
+8. Декаратор изменяющий ствойство <p [ngStyle]="{backgroundColor: getColor()}">
+9. Применение стиля по условию <p [ngClass]="{online: serverStatus === 'online'}" >
+10. Цикл по созданию элементов <app-server *ngFor="let server of servers; let i = index"></app-server>, где servers - массив в модели.
+11. Для связки членов класса нужно использовать @Input() element; В том месте, где задаем значение, нужно писать например так <app-server-element *ngFor="let serverElement of  serverElements" [element]="serverElement"></app-server-element>
+12. Выдача событий делается таким образом
+ @Output('srvCreated') serverCreated = new EventEmitter<{serverName: string, serverContent: string}>();
+ onAddServer() {
+    this.serverCreated.emit({serverName: this.newServerName, serverContent: this.newServerContent});
+  }
+ Ловится событие вместе с данными так:
+ (srvCreated)="onServerAdded($event)"
+  onServerAdded(serverData: {serverName: string, serverContent: string}) {
+    this.serverElements.push({
+      type: 'server',
+      name: serverData.serverName,
+      content: serverData.serverContent
+    });
+  }
+13. Получать и передавать свойства можно так
+    <input  type="text"  class="form-control"  #serverNameInput>
+    <button class="btn btn-primary" (click)="onAddServer(serverNameInput)">Add Server</button>
+    
+    onAddServer(nameInput: HTMLInputElement) {
+       console.log(nameInput.value); }
+
+    Для 13 и 14 в app.module.ts в массив imports добавить FormsModule
+14. Еще можно так
+     <input type="text" class="form-control" #serverContent>
+     <button class="btn btn-primary" (click)="onAddServer(serverNameInput)">Add Server</button>
+
+
+      @ViewChild('serverContent') serverContentInput: ElementRef;  
+      onAddServer() {
+            console.log(this.serverContentInput.nativeElement.value);}
+
+15. Для оформления можен применять директиву ngClass
+  	 <p [ngClass]="{segoePrintFont:true}">Angular 5 представляет модульную архитектуру приложения</p>
+    или <p [class.verdanaFont]="false" [class.segoePrintFont]="true">Angular 5 представляет модульную архитектуру приложения</p> 
+	где seogoePrintFont - стиль в CSS. Класс применяется ко всему объекту, включая вложенные объекты, если ко вложенным не хотим, то можно написать ="false"
+	Тут подробнее (и в целом понятное руководство): https://metanit.com/web/angular2/3.1.php
+16. Еще можно применить ngStyle, в нем сразу пишется стиль
+	[ngStyle]="{backgroundColor: odd % 2 !==0 ? 'yellow' : 'transparent'}"
+17. Обмен между компонентами через сервис
+	Пусть есть два компонента и один сервис. Изменения (события) на одном компоненте, должны фиксироваться в сервисе и через нег воздействовать на второй компонент.
+	В сервисе объявляется переменная:
+		recipeSelected = new EventEmitter<Recipe>(); // Тут Recipe - тип данных
+	В первом компоненте (в котором событие генерируется):
+		onSelected() {
+   		     this.recipeService.recipeSelected.emit(this.recipe);
+  		} 
+	Во втором компоненте подписываемся на событие и сохраняем полученные данные:
+		ngOnInit() {
+   		     this.recipeService.recipeSelected.subscribe((recipe: Recipe) => {this.selectedRecipe = recipe; } );
+  		}
+
+18. Маршрутизация (пример в проекте routing-start). Для маршрутизации в app.module.ts вставить
+	const appRoutes: Routes = [
+	  { path: '', component: HomeComponent},
+	  { path: 'servers', component: ServersComponent}, // Тут будет путь localhost:4200/server и загрузится ServersComponent
+	  { path: 'users', component: UsersComponent}
+	];
+     кроме того в app.module.ts добавить
+	imports: [
+	    ...
+	    RouterModule.forRoot(appRoutes),
+	  ],
+     	Если маршрутов больше 3х, то хорошая практика - выносить маршруты в отдельный файл. См. п. 27.
+	В нужное (при верстке) место app.component.html нужно добавить  <router-outlet></router-outlet>, на это место будет загружаться компонент из Routes при вводе в адресной строке соответствующего адреса
+	Ссылки правильно вставлять через routerLink (можно по одной, можно массивом):
+	     <ul class="nav nav-tabs">
+		<li role="presentation" routerLinkActive="active"
+		    [routerLinkActiveOptions]="{exact: true}"><a routerLink="/">Home</a></li>
+		<li role="presentation" routerLinkActive="active"><a routerLink="/servers">Servers</a></li>
+		<li role="presentation" routerLinkActive="active"><a [routerLink]="['/users']">Users</a></li>
+	      </ul>
+	В этом же примере показано, как стилизовать элементы html в зависимости от маршрута (rouetrLinkActive) и как обработать "корень" всех маршрутов отдельно (routerLinkActiveOptions).
+19. Программно по маршруту можно перейти следующим образом
+
+	export class HomeComponent implements OnInit {
+	  constructor(private router: Router) { }
+	  onLoadServers() {
+	    this.router.navigate(['/servers']);
+	  }
+	}
+20. Через маршруты можно передавать параметры (этот маршрут без параметров описан в п.18 в app.module.ts)
+	  { path: 'users/:id/:name', component: UserComponent}
+21. Поймать и если надо подписаться на эти параметры можно так
+	export class UserComponent implements OnInit {
+	  user: {id: number, name: string};
+
+	  constructor(private route: ActivatedRoute) { }
+
+	  ngOnInit() {
+	    this.user =  {
+	      id: this.route.snapshot.params['id'],       // Параметры адреса
+	      name: this.route.snapshot.params['name']
+	    };
+	    console.log(this.route.snapshot.queryParams['allowEdit']); // Параметры запроса
+	    this.route.params.subscribe(    // тут подписываемся на входящие параметры
+	      (params: Params) => {
+		this.user.id = params['id'];      // А тут по этим параметрам можно заполнить какую-нибудь переменную
+		this.user.name = params['name'];  // или выполнить функцию
+	      }
+	    );
+		
+	   this.route.queryParams.subscribe(	// тут подписываемся на параметры запросы (они передаются по другому
+      	      (queryParams: Params) => {        // см. п. 22 и п 23.
+                 this.allowEdit = queryParams['allowEdit'] === '1';
+               }
+           );
+	  this.route.data.subscribe(                // Еще можно подписаться на данные. Передача статических данных п.28
+	       (data: Data) => {
+	             this.errorMessage = data['message'];
+		}
+           );
+	  }
+	}
+22. Передать параметры по маршруты (программно из *.ts) можно так
+	   onLoadServers(id: number) {
+	       this.router.navigate(['/servers', id, 'edit'], {queryParams: {allowEdit: '1'}, fragment: 'loading'});
+	    }
+23. Эти же параметры в html можно передать так
+	<a
+	  [routerLink]="['/servers', 5, 'edit']"
+	  [queryParams]="{allowEdit: '1'}"
+	  fragment="loading"
+	  class="list-group-item"
+	  *ngFor="let server of servers">
+		  {{ server.name }}
+	</a>
+24. Children routes добавляются так:
+	 { path: 'servers', component: ServersComponent,
+	    children: [
+	      { path: ':id/edit', component: EditServerComponent},
+	      { path: ':id', component: ServerComponent}]
+	  },
+   Потом в компоненте, у которого есть children route можно использовать <router-outlet></router-outlet>.
+25. При переходе по относительным маршрутам (когда уже зашли куда-то по маршруту), это нужно указывать так
+	onEdit() {
+	    this.router.navigate(['edit'], {relativeTo: this.route});
+            this.router.navigate(['../', this.id, 'edit'], {relativeTo: this.route}); // Или относительный текущего пути маршрут можно набрать так: т.е на шаг выше, добавить id и добавить edit
+	 }
+26. Маршрутизация на несуществующую страницу (путь по умолчанию)
+	  {path: 'not-found', component: PageNotFoundComponent},
+	  {path: '**', redirectTo: '/not-found'}
+27. Маршруты лучше выносить в одельный файл app-routing.modules.ts
+
+	const appRoutes: Routes = [
+	  { path: '', component: HomeComponent},
+	  { path: 'servers', component: ServersComponent,
+	    children: [
+	      { path: ':id/edit', component: EditServerComponent},
+	      { path: ':id', component: ServerComponent}]
+	  },
+	];
+
+	@NgModule({
+	  imports: [
+	    RouterModule.forRoot(appRoutes)
+	  ],
+	  exports: [RouterModule]
+	})
+	export class AppRoutingModule {
+	}
+
+	В app.module.ts нужно добавить
+	  imports: [
+	    ...
+	    AppRoutingModule
+	  ],
+28. Передача статических данных через маршрут
+	{path: 'not-found', component: ErrorPageComponent, data: {message: 'Page not found!'}},
+
+29. Установка rxjs-compat 
+   npm install --save rxjs-compat
+
+   Нужно импортировать:
+   import { Observable } from 'rxjs-compat';
+
+30. Пример своего Observable и Observer с подпиской и отпиской при выходе из компонента
+  numbersObservableSubscription: Subscription;
+  myObservableSubscription: Subscription;
+
+  ngOnInit() {
+    const myNumbers = Observable.interval(1000);
+    this.numbersObservableSubscription = myNumbers.subscribe(
+      (number: number) => {  console.log(number); }
+    );
+
+    const myObservable = Observable.create((observer: Observer<string>) => {
+      setTimeout(() => {
+        observer.next('first package');
+      }, 2000);
+      setTimeout(() => {
+        observer.next('second package');
+      }, 4000);
+      setTimeout(() => {
+        // observer.error('this does not work');
+        observer.complete();
+      }, 5000);
+      setTimeout(() => {
+        observer.next('third package');
+      }, 6000);
+    });
+
+    this.myObservableSubscription = myObservable.subscribe(
+      (data: string) => { console.log(data); },
+      (error: string) => { console.log(error); },
+      () => { console.log('completed'); }
+    );
+  }
+
+  ngOnDestroy() {
+    this.numbersObservableSubscription.unsubscribe();
+    this.myObservableSubscription.unsubscribe();
+  } 
+
+31. На данные с формы можно подписаться следующим образом
+	  <form (ngSubmit)="onSubmit(f)" #f="ngForm">
+		<div id="user-data">
+		  <div class="form-group">
+		    <label for="username">Username</label>
+		    <input type="text" id="username" class="form-control" ngModel name="username">
+		  </div>
+		  <button class="btn btn-default" type="button">Suggest an Username</button>
+		  <div class="form-group">
+		    <label for="email">Mail</label>
+		    <input type="email" id="email" class="form-control" ngModel name="email">
+		  </div>
+		</div>
+     Тут интересен  (ngSubmit)="onSubmit(f)" #f="ngForm" и  ngModel name="username". В *.ts функция 
+	  onSubmit(form: NgForm) {
+	    console.log(form);
+	  }
+32. Другой способ получить данные с формы в typeScript код
+	<form (ngSubmit)="onSubmit()" #f="ngForm">
+    А в ts
+	
+	@ViewChild('f') signupForm: NgForm;
+
+	onSubmit() {
+	    console.log(this.signupForm);
+	}
+33. Если элементы на форме заданы обязательными или какими-то специальными, например
+	 <input type="email" id="email" class="form-control" ngModel name="email" required email>
+    То кнопку на форме можно заблокировать так
+	<button class="btn btn-primary" type="submit" [disabled]="!f.valid">Submit</button>
+     это если форма подписана так, как написано в п. 32
+
+    Стиль для элементов ввода, которые введены с ошибкй можно задать так
+	input.ng-invalid.ng-touched {
+	  border: 1px solid red;
+	}
+34. Стилизовать и делать подсказки на форме ввода, в зависимости от введенных данных можно так
+	<input type="email" id="email" class="form-control" ngModel name="email" required email #email="ngModel">
+        <span class="help-block" *ngIf="!email.valid && email.touched">Please enter a valid email</span>
+35. Устновить значение по умолчанию на форме можно так
+	<select
+            id="secret"
+            class="form-control"
+            [ngModel]="defaultQuestion"
+            name="secret">
+            <option value="pet">Your first Pet?</option>
+            <option value="teacher">Your first teacher?</option>
+          </select>
+     где defaultQuestion - переменная из *.ts
+36. Двойное сязывание данных с формы вводи и моделью делается так:
+	 <div class="form-group">
+          <textarea
+            name="questionAnswer"
+            rows="3"
+            class="form-control"
+            [(ngModel)]="answer"></textarea>
+        </div>
+        <p>Your reply: {{ answer }}</p>
+   где answer - переменная из *.ts.
+37. Группу элементов на форме можно именовать и также проверять на валидность целиком, как и отдельный элемент ввода
+	 <div id="user-data" ngModelGroup="userData" #userData="ngModelGroup">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" class="form-control" ngModel name="username" required>
+          </div>
+          <button class="btn btn-default" type="button">Suggest an Username</button>
+          <div class="form-group">
+            <label for="email">Mail</label>
+            <input
+              type="email" id="email" class="form-control" ngModel name="email" required email #email="ngModel">
+          </div>
+          <span class="help-block" *ngIf="!email.valid && email.touched">Please enter a valid email</span>
+        </div>
+        <p *ngIf="!userData.valid && userData.touched">User data is invalid!</p>
+38. Установка раидоБаттонов на форме ввода
+	<div class="radio" *ngFor="let gender of genders">
+          <label>
+            <input type="radio" name="gender" ngModel [value]="gender">
+            {{ gender }}
+          </label>
+        </div>
+     а в *.ts
+	genders = ['male', 'female'];
+39. Если форма сделана, как в п. 32, то установить значения по умолчанию можно так
+	this.signupForm.form.patchValue({
+      		userData: {
+       			username: suggestedName
+      			}
+    	});
+40. Очистить и сбросить форму в *.ts можно this.signupForm.resetForm();
+41. Если на форме есть элемент input с типом number, то задать ограничение на неотрицательность можно шаблоном
+	pattern="^[1-9]+[0-9]*$"
+42. Использование pipe
+	{{ server.started | date:'fullDate' | uppercase }}
+43. Свой pipe (файл shorten.pipe.ts)
+	
+	import {Pipe, PipeTransform} from '@angular/core';
+	@Pipe({
+	  name: 'shorten'
+	})
+	export class ShortenPipe implements PipeTransform {
+	  transform(value: any) {
+	      return value.substr(0, 10) + '...';
+	  }
+	}
+    кроме этого в app.modules.ts в раздел declaration надо добавить ShortenPipe (имя класса в котором реализован pipe).
+44. Параметры в pipe передаются через двоеточие  <strong>{{ server.name | shorten:5 }}</strong>
+    Функция реализуется так:
+	  transform(value: any, limit: number) {
+	      return value.substr(0, limit) + '...';
+	  }
+45. Создание pipe
+    ng g p Name
+46. Фильтр pipe можно реализовать например так
+	import { Pipe, PipeTransform } from '@angular/core';
+
+	@Pipe({
+	  name: 'filter'
+	})
+	export class FilterPipe implements PipeTransform {
+	  transform(value: any, filterString: string, propName: string): any {
+	    if (value.length === 0 || filterString === '') {
+	      return value;
+	    }
+	    const resultArray = [];
+	    for (const item of value) {
+	      if (item[propName] === filterString) {
+		resultArray.push(item);
+	      }
+	    }
+	    return resultArray;
+	  }
+	}
+
+    Использовать так
+    *ngFor="let server of servers | filter:filteredStatus:'status'"
+47. Асинхронные данные можно обработать pipe'ом async, например так:
+	App status: {{ appStatus | async }} 
+48. Устаревший способ выполнения http запроса. В этом примере создается сервис, который выполняет сохранение данных. На самом деле функция http.put возвращает Observable и его нужно обработать.
+	import {Injectable} from '@angular/core';
+	import { Http } from '@angular/http';
+	import {RecipeService} from '../recipes/recipe.service';
+
+	@Injectable()
+	export class DataStorageService {
+	  constructor(private http: Http, private recipeService: RecipeService) {}
+
+	  storeRecipes() {
+	    return this.http.put('https://recipebook-galkin.firebaseio.com/recipes.json', this.recipeService.getRecipe());
+	  }
+	}
+ Там где вызывается сервис делаем так
+	 onSave() {
+	    this.dataStorageService.storeRecipes().subscribe(
+	      (response: Response) => {
+		console.log(response);
+	      }
+	    );
+	  }
+ Для того чтобы стаый http работал нужно установить npm install --save @angular/http, а затем в app.module.ts добавить HttpModule в imports[]
+49. Пример получения данных от бэкэнда
+	import { Http } from '@angular/http';
+	import {Response} from '@angular/http';
+	getRecipes() {
+	    this.http.get('https://recipebook-galkin.firebaseio.com/recipes.json')
+	      .subscribe(
+		(response: Response) => {
+		  const recipes: Recipe[] = response.json();
+		  this.recipeService.setRecipes(recipes);
+		}
+
+	      );
+	  }
+50. Чтобы сервис мог сам внедрять зависимости, нужно обернуть его декоратором @Injectable. Т.е если внутри какого-нибудь сервис нужно воспользоваться другим сервисом.
+51. В сервисах доступа к данным, похоже, что лучше делать такую штуку как Subject она нужна для подписки на изменение данных. 
+В сервисе:
+	import {Subject} from 'rxjs';
+
+	export class RecipeService {
+	   recipeChanged = new Subject<Recipe[]>();
+	   ...
+	     addRecipe(recipe: Recipe) {
+	    this.recipes.push(recipe);
+	    this.recipeChanged.next(this.recipes.slice()); // это важная строка
+	  }
+В месте, где нужно подписаться на событие
+	    this.subscription = this.recipeService.recipeChanged.subscribe(
+	      (recipes: Recipe[]) => {
+		this.recipes = recipes;
+	      }
+	    );
+52. Еще данные от бэкенда можно получать более навороченным способом
+	  getRecipes() {
+	    this.http.get('https://recipebook-galkin.firebaseio.com/recipes.json')
+	      .map(
+		(response: Response) => {
+		  const recipes: Recipe[] = response.json();
+		  for (const recipe of recipes) {
+		    if ( !recipe.ingredients) {
+		      console.log(recipe);
+		      recipe.ingredients = [];
+		    }
+		  }
+		  return recipes;
+		}
+	      )
+	      .subscribe(
+		(recipes: Recipe[]) => {
+		  this.recipeService.setRecipes(recipes);
+		}
+	      );
+	  }
+    Тут особенность в map'е. Для этого еще нужно
+	import 'rxjs-compat/add/operator/map';
+	npm install --save rxjs-compat@6.1.0
+53. Установить компоненты firebase в проект npm install --save firebase
+54. В Appcomponent добавить
+	import * as firebase from 'firebase';
+
+	export class AppComponent implements OnInit {
+
+	  ngOnInit() {
+	    firebase.initializeApp({
+	      apiKey: 'AIzaSyDKyqWgScIwkgpl7pBgqCwt2bp_rxbwc9c',
+	      authDomain: 'recipebook-galkin.firebaseapp.com'
+	    });
+	  }
+	}
+55. Сервис регистрации пользователя в firebase
+	import * as firebase from 'firebase';
+	import {Injectable} from '@angular/core';
+
+	@Injectable()
+	export class AuthService {
+	  signupUser(email: string, password: string) {
+	    firebase.auth().createUserWithEmailAndPassword(email, password)
+	      .catch(
+		error => console.log(error)
+	      );
+	  }
+	}
+56. Сервис авторизации пользователя и выдачи токена
+	signinUser(email: string, password: string) {
+	    firebase.auth().signInWithEmailAndPassword(email, password)
+	      .then(
+		response => {
+                  this.router.navigate(['/']);                 // Можно после авторизации сделать навигацию на любую страницу
+		  firebase.auth().currentUser.getIdToken()
+		    .then(
+		      (token: string) => {
+			this.token = token;
+		      }
+		    );
+		}
+	      )
+	      .catch(
+		error => console.log(error)
+	      );
+	  }
+
+	  getToken() {
+	    firebase.auth().currentUser.getIdToken().then(
+	      (token: string) => {
+		this.token = token;
+	      }
+	    );
+	    return this.token;
+	  }
+57. Применение токена в вызове серверных процедур
+	storeRecipes() {
+	    const token = this.authService.getToken();
+	    return this.http.put('https://recipebook-galkin.firebaseio.com/recipes.json?auth=' + token, this.recipeService.getRecipe());
+	}
+58. Признак аутентификации можно сделать на токене
+	isAuthenticated() {
+    		return this.token != null;
+  	}
+    В компоненте завести сервис и пользоваться
+	<li class="dropdown" appDropdown *ngIf="authService.isAuthenticated()"> 
+    или так
+	<ng-template [ngIf]="!authService.isAuthenticated()">
+          <li><a  routerLink="/signup">Register</a> </li>
+          <li><a  routerLink="/signin">Login</a> </li>
+        </ng-template>
+59. Функцию логаута в сервисе авторизации можно сделать так
+ 	logout() {
+    		firebase.auth().signOut();
+    		this.token = null;
+  	}
+60. Для защиты перехода по маршруту нужно сделать специальный класс с одним методом
+	import {ActivatedRouteSnapshot, CanActivate, RouterStateSnapshot} from '@angular/router';
+	import {Injectable} from '@angular/core';
+	import {AuthService} from './auth.service';
+
+	@Injectable()
+	export class AuthGuardService  implements CanActivate {
+
+	  constructor(private authService: AuthService) { }
+
+	  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
+	    return this.authService.isAuthenticated();
+	  }
+	}
+    Потом в app-routing.module.ts поставить защиту на маршрут
+        { path: 'new', component: RecipeEditComponent, canActivate: [AuthGuardService] },
+61. Material Design for Bootstrap 
+ npm install angular-bootstrap-md --save
+ app.module.ts
+ imports: [
+    MDBBootstrapModule
+  ], 
+  angular.json
+  "styles": [
+              "node_modules/bootstrap/dist/css/bootstrap.min.css",
+              "node_modules/angular-bootstrap-md/scss/bootstrap/bootstrap.scss",
+              "src/styles.css"
+            ],
+62. Скрипты для bootstrap можно добавлять в angular.json
+            "scripts": [
+              "node_modules/jquery/dist/jquery.min.js",
+              "node_modules/bootstrap/dist/js/bootstrap.js"
+            ],
+63. app.module.ts не единственное место, на которое нужно завязывать весь проект. Если компонентов много, то их можно группировать в отдельные модули и эти новые модули импортировать в app.module.ts.
+Тоже самое с app-routing.module.ts: в него можно не писать маршруты для всего приложения. Если будет сделан xxx-routing.module.ts для отдельного фрагмента приложения, то его нужно поместить в imports xxx.module.ts.
+64. Отличие app-routing.module.ts от xxx.routing.module.ts заключается в 
+	imports: [
+    		RouterModule.forChild(recipesRoutes)
+  	]
+65. По умолчанию применяется eager loading (нетерпеливая загрузка). Если хотим сделать ленивую загрузку xxx.module.ts нужно
+  В app-routing.module.ts добавить путь(path) к xxx, хотя до этого этот путь должен был быть обработан в xxx-routing.module.ts
+	{ path: 'xxx', loadChildren: './xxx/xxx.module#XxxxModule'},  // В ковычках путь к xxx.module.ts и имя класса
+  В xxx-routing.module.ts изменить путь корневого маршрута так
+	const recipesRoutes: Routes = [
+	  { path: '', component: RecipesComponent,
+	    children: [
+	      { path: '', comp....
+66. Защиту загрузки данных (возможность и перехода и загрузки js) можно сделать с помощю canLoad
+	{ path: 'xxx', loadChildren: './xxx/xxx.module#XxxxModule', canLoad: [AuthGuard]}
+67. ahead-of-time (досрочная) 
+	ng build --prod --aot
+68. Для предварительной загрузки lazy loaded route (в свободное время, после обязательной загрузки модулей) в app-routing.module.ts 
+	imports: [ RouterModule.forRoot(appRoutes, {preloadingStrategy: PreloadAllModules}) ],  
+69. Для использования HttpClient его надо подключить в app.module.ts в imports
+    Вот целый пример:
+
+	@Injectable()
+	export class DataStorageService {
+	  constructor(private httpClient: HttpClient, private recipeService: RecipeService,
+		      private authService: AuthService) {}
+
+	  storeRecipes() {
+	    const token = this.authService.getToken();
+	    return this.httpClient.put('https://recipebook-galkin.firebaseio.com/recipes.json?auth=' + token,
+	      this.recipeService.getRecipe());
+	  }
+
+	  getRecipes() {
+	    const token = this.authService.getToken();
+	    this.httpClient.get<Recipe[]>('https://recipebook-galkin.firebaseio.com/recipes.json?auth=' + token)
+	      .map(
+		(recipes) => {
+		  for (const recipe of recipes) {
+		    if ( !recipe.ingredients) {
+		      console.log(recipe);
+		      recipe.ingredients = [];
+		    }
+		  }
+		  return recipes;
+		}
+	      )
+	      .subscribe(
+		(recipes: Recipe[]) => {
+		  this.recipeService.setRecipes(recipes);
+		}
+	      );
+	  }
+	} 
+
+70. В примере выше, в функции get явно задали тип данных <Recipe[]>. Если в body будет не json, а что-нибудь другое, нужно делать так
+	this.httpClient.get('https://recipebook-galkin.firebaseio.com/recipes.json?auth=' + token,
+	      {
+		observe: 'body',
+		responseType: 'json'
+	      })
+	      .map(
+   В примере выше можно указать и приведение типа: this.httpClient.get<Recipe[]>('https.....
+71. А передать параметры и вызвать "универсальную" функцию для вызова любого типа запросов можно вызвать так
+	 const req = new HttpRequest('PUT', 'https://recipebook-galkin.firebaseio.com/recipes.json',
+	      this.recipeService.getRecipe(), {
+		reportProgress: true,
+		params: new HttpParams().set('auth', token)
+	      });
+72. Перехват запросов, например в целях изменения параметров (для авторизации) или заголовков и т.п делается через Interceptor.
+    Сначала нужно сделать класс перехватчик, например auth.interceptor.ts
+	@Injectable()
+	export class AuthInterceptor implements HttpInterceptor {
+	  constructor(private  authService: AuthService) {}
+
+	  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+	    console.log('Intercepted!', req);
+	    const copiedReq = req.clone({params: req.params.set('auth', this.authService.getToken())});
+	    return next.handle(copiedReq);
+	  }
+	}
+      Потом в app.module.ts или другом module.ts в котором есть сервис выполняющий запрос на сервер нужно в раздел providers добавить {provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true} . Эта штука будет перехватывать запрос и при потребности его модифицировать или фильтровать (короче как-то обрабатывать).
+73. В п. 73 перехватчик отрабатывал до выполнения запроса, чтобы модифицировать запрос. Также можно сделать перехватчик, который обрабатывает результаты выполнения запроса. Например логирует результаты запроса:
+	import {HttpEvent, HttpHandler, HttpInterceptor, HttpRequest} from '@angular/common/http';
+	import {Observable} from 'rxjs';
+	import 'rxjs/add/operator/do';
+
+	export class LoggingInterceptor implements HttpInterceptor {
+	  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+	    return next.handle(req).do(
+	      event => {
+		console.log('Logging interceptor', event);
+	      }
+	    );
+	  } 
+ Его нужно встьвить так же в module.ts, как и перехватчик из п.72. Перехватчики отрабатвают в порядке перечисления их в module.ts.
+74.
+
+
+getIdToken() искать токен не в localStorage, а в IndexDB/
